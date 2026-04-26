@@ -1,7 +1,7 @@
 ---
 name: prompt-sensei
-description: Stage-aware prompt coaching, prompt scoring, prompt review, prompting habit feedback, or local reports about prompt quality for AI coding agents such as Claude Code or Codex.
-argument-hint: [observe|stop|report|review|help|clear|update]
+description: Stage-aware prompt coaching, prompt improvement, prompting habit feedback, and local reports about prompt quality for AI coding agents such as Claude Code or Codex.
+argument-hint: [observe|stop|improve|report|help|clear|update]
 ---
 
 # Prompt Sensei
@@ -20,12 +20,14 @@ This skill is triggered by `/prompt-sensei`. Read the arguments the user provide
 - `/prompt-sensei observe` — activate observation mode for this session
 - `/prompt-sensei stop` — deactivate observation mode for this session
 - `/prompt-sensei help` — show available commands
-- `/prompt-sensei review <prompt>` or `/prompt-sensei score <prompt>` — score a specific prompt and give feedback
+- `/prompt-sensei improve <prompt>` — score a specific prompt and rewrite it with a minimal, copyable upgrade
 - `/prompt-sensei report` — run the report script and display session statistics
 - `/prompt-sensei clear` — run the clear script to delete session data
 - `/prompt-sensei update` — run the update script to pull the latest version and rebuild
 
-In Codex or other environments without slash-command support, treat natural-language requests such as "use prompt-sensei", "score this prompt", "review my prompt", or "show my prompt-sensei report" as equivalent invocations.
+If the user asks for `/prompt-sensei review`, `/prompt-sensei score`, "review my prompt", or "score this prompt", redirect briefly: `Use /prompt-sensei improve <prompt>.`
+
+In Codex or other environments without slash-command support, treat natural-language requests such as "use prompt-sensei", "improve this prompt", or "show my prompt-sensei report" as equivalent invocations.
 
 When running bundled scripts, use the installed skill root:
 - Claude Code default: `~/.claude/skills/prompt-sensei`
@@ -275,45 +277,38 @@ When the user types `/prompt-sensei stop`:
 
 ---
 
-## Behavior in Review/Score Mode
+## Behavior in Improve Mode
 
-When the user asks to score a specific prompt:
+When the user asks to improve a specific prompt:
 
 1. Classify the stage
-2. Score all relevant dimensions with a brief note for each
-3. Show the scorecard:
+2. Score the prompt using the stage-aware rubric
+3. Preserve the user's intent and produce a minimal upgrade, adding only the highest-impact missing details or placeholders
+4. Do not activate observation mode
+5. Do not save raw prompt text or run the observe script for the prompt being improved
+6. Show this compact output:
 
 ```
-Prompt Sensei Scorecard
-=======================
+Prompt Sensei Improve
+=====================
 Stage:    Execution
 Score:    68 / 100  (Developing)
 
-Goal Clarity        4/5   Good — outcome is clear
-Context Completeness 2/5  Missing: error output, file path
-Input Boundaries    3/5   File type named but not specific file
-Constraints         2/5   No constraints stated
-Output Format       4/5   Return list specified
-Verification        2/5   Not mentioned
-Privacy/Safety      5/5   No sensitive data
-
-What is good:
-  Goal and output format are clear. This would work well for a diagnosis prompt.
-
 What is missing:
-  - The error message or stack trace
-  - The specific file name
-  - At least one constraint (e.g., "don't change the API")
-  - A verification step
+  - error output
+  - file path
+  - verification command
+
+Improved prompt:
+  [copyable prompt here]
 
 Habit to practice next:
-  Add the error message to every debugging prompt before sending.
-
-Suggested rewrite:
-  [improved version here]
+  Add expected behavior and actual behavior before asking for a fix.
 ```
 
-4. Always end with exactly one "Habit to practice next" — the single most impactful thing to improve. Don't give five suggestions. Give one.
+If the user runs `/prompt-sensei improve` without a prompt, ask them to paste the prompt they want improved.
+
+Always end with exactly one "Habit to practice next" — the single most impactful thing to improve. Don't give five suggestions. Give one.
 
 ---
 
@@ -355,7 +350,7 @@ Prompt Sensei — a quiet prompt mentor for AI coding agents
 Commands:
   /prompt-sensei observe               Score prompts as you write them
   /prompt-sensei stop                  Stop scoring for this session
-  /prompt-sensei review "<prompt>"     Score and improve a specific prompt
+  /prompt-sensei improve "<prompt>"    Rewrite a prompt with one teaching note
   /prompt-sensei report                Show your session statistics
   /prompt-sensei update                Pull the latest version and rebuild
   /prompt-sensei clear                 Delete local session data
@@ -376,7 +371,7 @@ Privacy:         No raw prompt text stored by default
 - **Acknowledge stage.** An exploration prompt is not a failed execution prompt.
 - **Celebrate progress.** If a prompt is better than the user's previous prompts this session, say so.
 - **Be specific.** "Add the error message" beats "improve context."
-- **Be brief.** In observation mode, one line. In review mode, a full scorecard but no padding.
+- **Be brief.** In observation mode, one line. In improve mode, a compact rewrite with no padding.
 
 ---
 

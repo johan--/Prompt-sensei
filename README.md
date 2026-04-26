@@ -1,60 +1,148 @@
 # Prompt Sensei
 
-> A quiet, local-first prompt mentor for engineers using AI coding tools.
+> Prompting is becoming one of the most important engineering skills in the AI era. Prompt Sensei helps you improve your prompts while teaching you how to improve.
 
 [中文说明](README-zh.md)
 
-Prompt Sensei gives stage-aware coaching on your AI prompts — quietly in the background, no cloud, no leaderboard.
+Prompt Sensei is a quiet, local-first prompt coach for Claude Code and Codex. It gives stage-aware feedback, rewrites rough prompts into better ones, and helps you practice one habit at a time.
+
+No cloud. No telemetry. No leaderboard. No raw prompt archive.
 
 ---
 
-## Installation
+## Why This Exists
+
+AI coding agents do real work: they edit files, run commands, and make implementation choices. A vague prompt does not just produce a vague answer; it can produce broad edits, hidden assumptions, and extra revision loops.
+
+Prompt Sensei is built around a simple belief:
+
+- Prompting is an engineering skill.
+- Engineering skills improve through feedback.
+- Feedback should be kind, specific, private, and useful.
+
+It does not treat `fix this test` as a bad prompt. It treats it as an early-stage prompt, then teaches the next step.
+
+---
+
+## 5-Minute Quickstart
+
+Install for Claude Code:
 
 ```bash
 git clone https://github.com/chengzhongwei/Prompt-sensei ~/.claude/skills/prompt-sensei
 (cd ~/.claude/skills/prompt-sensei && npm install && npm run build)
 ```
 
-Claude Code picks up skills in `~/.claude/skills/` automatically.
-
-For Codex:
+Install for Codex:
 
 ```bash
 git clone https://github.com/chengzhongwei/Prompt-sensei ~/.codex/skills/prompt-sensei
 (cd ~/.codex/skills/prompt-sensei && npm install && npm run build)
 ```
 
+Start live coaching:
+
+```txt
+/prompt-sensei observe
+```
+
+Try improving a rough prompt:
+
+```txt
+/prompt-sensei improve "fix this test"
+```
+
+Example output:
+
+```txt
+Prompt Sensei Improve
+=====================
+Stage:    Exploration
+Score:    70 / 100  (Good)
+
+What is missing:
+  - failing test name
+  - expected behavior
+  - actual error output
+
+Improved prompt:
+  Help me debug this failing test.
+
+  Test: [test name]
+  Expected: [what should happen]
+  Actual: [error output or wrong behavior]
+  Related file: [file path]
+
+  Return:
+  1. Likely root cause
+  2. Minimal fix
+  3. Test command to verify
+
+Habit to practice next:
+  Add expected and actual behavior before asking for a fix.
+```
+
+See [examples/prompt-gallery.md](examples/prompt-gallery.md) for more copyable before/after prompts.
+
 ---
 
-## Usage
+## Commands
 
-```
-/prompt-sensei [observe|stop|report|review|help|clear|update]
+```txt
+/prompt-sensei [observe|stop|improve|report|help|clear|update]
 ```
 
-With no arguments, starts observation mode by default.
-
-```
-/prompt-sensei observe          # start scoring
-/prompt-sensei stop             # stop scoring this session
-/prompt-sensei review "help me fix this"
-/prompt-sensei report
-/prompt-sensei update
+```txt
+/prompt-sensei observe              # start live coaching
+/prompt-sensei stop                 # stop coaching this session
+/prompt-sensei improve "fix this"   # rewrite a prompt with one teaching note
+/prompt-sensei report               # show local session trends
+/prompt-sensei update               # pull latest version and rebuild
+/prompt-sensei clear                # delete local Prompt Sensei data
 /prompt-sensei help
 ```
 
-For Codex (no slash-command support), use natural language:
+For Codex, use natural language:
 
 ```txt
-Use prompt-sensei to review this prompt: "fix this test"
+Use prompt-sensei to improve this prompt: "fix this test"
 Use prompt-sensei to show my report.
 ```
 
 ---
 
-## Optional: Local Hook
+## How It Teaches
 
-Add a `UserPromptSubmit` hook to `~/.claude/settings.json` to record lightweight prompt metadata in the background (hash only, no raw text):
+Prompt Sensei is stage-aware. A short exploration prompt can be reasonable early, while an execution prompt needs clearer context, boundaries, and verification.
+
+| Stage | Meaning | Example |
+|---|---|---|
+| Exploration | Still figuring out the problem | `why is this broken` |
+| Diagnosis | Have evidence or symptoms | `expected /login, actual /dashboard` |
+| Execution | Want implementation or changes | `implement this with these constraints` |
+| Verification | Want correctness checks | `find edge cases and test commands` |
+| Reusable workflow | Want a repeatable process | `create a code review checklist` |
+| Action | Short follow-through directive | `ok commit and push to main` |
+
+The coaching line stays small:
+
+> **[Sensei: 68/100 · Diagnosis; Tip: add the error message and file path]**
+
+The report focuses on growth:
+
+```txt
+Average score:    81 / 100  (Good)
+Most common type: implementation
+Next habit:       End prompts with the exact test command or edge cases.
+```
+
+For the full philosophy, read [docs/philosophy.md](docs/philosophy.md). For scoring details, read [docs/scoring-rubric.md](docs/scoring-rubric.md).
+
+---
+
+## Optional Claude Code Hook
+
+Add a `UserPromptSubmit` hook to `~/.claude/settings.json` to record hash-only prompt metadata in the background after consent:
 
 ```json
 {
@@ -75,141 +163,33 @@ Add a `UserPromptSubmit` hook to `~/.claude/settings.json` to record lightweight
 }
 ```
 
-The hook only writes after you consent by running `/prompt-sensei observe` once. Hash-only captures are excluded from scoring — stage-aware feedback requires conversation context.
-
-If your Claude Code version supports `Stop` hooks:
-
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/skills/prompt-sensei/dist/scripts/observe.js --hash-only",
-            "async": true,
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
----
-
-## Demo
-
-**Prompt:** `fix this test`
-
-**Prompt Sensei feedback:**
-
-```
-Prompt stage:    Exploration
-Score:           70 / 100  (Good for Exploration)
-
-What is good:
-  You clearly indicated you need debugging help.
-
-What is missing for execution:
-  - failing test output
-  - expected behavior
-  - actual behavior
-  - related files
-  - verification command
-
-Habit to practice next:
-  Add expected behavior and actual behavior to every debugging prompt.
-```
-
-After scoring in observation mode, each response ends with:
-
-> **[Sensei: 68/100 · Diagnosis; Tip: add the error message and file path]**
-
-See [examples/debugging-journey.md](examples/debugging-journey.md) for a full before/after progression.
-
----
-
-## Prompt Stages
-
-| Stage | Meaning | Example |
-|---|---|---|
-| Exploration | Still figuring out the problem | `why is this broken` |
-| Diagnosis | Have evidence or symptoms | `expected /login, actual /dashboard` |
-| Execution | Want implementation or changes | `implement this with these constraints` |
-| Verification | Want correctness checks | `find edge cases and test commands` |
-| Reusable workflow | Want a repeatable process | `create a code review checklist` |
-| Action | Short follow-through directive | `ok commit and push to main` |
-
-Action prompts are never penalized for missing Constraints, Verification, or Output Format.
-
-See [docs/scoring-rubric.md](docs/scoring-rubric.md) for full dimension definitions and stage weights.
-
----
-
-## Good Prompt Pattern
-
-```
-Goal:         What do you want?
-Context:      What should the AI know?
-Input:        What should the AI use?
-Constraints:  What should the AI avoid or prioritize?
-Output:       How should the answer be structured?
-Verification: How should correctness be checked?
-```
-
-Not every prompt needs all six parts. Match the structure to the stage.
-
----
-
-## Example Report
-
-```
-# Prompt Sensei Report
-Observed 18 prompts in the last 7 days.
-
-**Average score:**     68 / 100  (Developing)
-**Trend:**             ↑  6 pts vs previous 5 prompts
-**Most common type:**  debugging
-**Most common stage:** diagnosis
-
-**Score history:**     ▂▃▃▄▄▄▅▅▆▆
-
-## Most common gaps
-- missing-context (7×)
-- no-verification (5×)
-- no-constraints (3×)
-
-## Feedback
-Your scores are trending upward. The practice is working.
-Next habit for debugging: Add the error message, expected behavior, and recent change before asking for help.
-```
+Hook captures are excluded from scoring because hooks do not have enough conversation context to classify the prompt or choose a coaching tip.
 
 ---
 
 ## Privacy
 
-Local only — no cloud, no telemetry, no login.
+Prompt content is sensitive. Prompt Sensei stores nothing until you consent.
 
-By default, stores: timestamp, task type, prompt stage, prompt hash, scores, and feedback tags. Never stores raw prompt text.
+After consent, it stores local metadata only:
 
 - `~/.prompt-sensei/events.jsonl` — observation log
 - `~/.prompt-sensei/config.json` — consent record
+- `~/.prompt-sensei/update-check.json` — cached update status
 
-See [docs/privacy.md](docs/privacy.md) for full details.
+It does not store raw prompt text by default, and it never sends prompt text, scores, reports, or local event data to a service.
+
+See [docs/privacy.md](docs/privacy.md) for details.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Good first areas:
+Good first areas:
 
 - realistic prompt improvement examples
 - scoring rubric improvements
 - redaction rule improvements
-- additional task classifiers
 - report improvements
 - support for other AI coding tools
 
