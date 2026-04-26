@@ -4,6 +4,7 @@
  *
  * Usage:
  *   observe.js --init
+ *   observe.js --hash-only
  *   observe.js --stage execution --score 3.8 --task-type debugging --flags missing-context,no-constraints
  *
  * Raw prompt text is never stored. Only metadata: timestamp, stage, task type,
@@ -18,10 +19,12 @@ import { mkdirSync, appendFileSync, writeFileSync, existsSync, readFileSync } fr
 import { join } from "path";
 import { homedir } from "os";
 import * as readline from "readline";
+import { spawn } from "child_process";
 
 const DATA_DIR = join(homedir(), ".prompt-sensei");
 const EVENTS_FILE = join(DATA_DIR, "events.jsonl");
 const CONFIG_FILE = join(DATA_DIR, "config.json");
+const UPDATE_SCRIPT = join(__dirname, "update.js");
 
 // Patterns for redacting sensitive data before hashing
 const REDACT_PATTERNS: Array<[RegExp, string]> = [
@@ -73,7 +76,7 @@ interface Config {
   v: number;
   consentGiven: boolean;
   consentAt: string;
-  storeRaw: boolean;
+  storeRaw?: boolean;
 }
 
 function loadConfig(): Config | null {
@@ -93,7 +96,7 @@ function saveConfig(config: Config): void {
 interface PromptEvent {
   v: 1;
   ts: string;
-  type: "session-start" | "prompt-observed";
+  type: "session-start" | "prompt-observed" | "prompt-hashed";
   stage?: string;
   taskType?: string;
   score?: number;
@@ -104,6 +107,21 @@ interface PromptEvent {
 function appendEvent(event: PromptEvent): void {
   ensureDataDir();
   appendFileSync(EVENTS_FILE, JSON.stringify(event) + "\n", "utf8");
+}
+
+function runBackgroundUpdateCheck(): void {
+  if (process.env["PROMPT_SENSEI_DISABLE_UPDATE_CHECK"] === "1") return;
+  if (!existsSync(UPDATE_SCRIPT)) return;
+
+  try {
+    const child = spawn(process.execPath, [UPDATE_SCRIPT, "--check", "--quiet"], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+  } catch {
+    // Update checks are best-effort and must never block prompt observation.
+  }
 }
 
 async function readStdin(): Promise<string> {
@@ -129,13 +147,13 @@ async function main(): Promise<void> {
         v: 1,
         consentGiven: true,
         consentAt: new Date().toISOString(),
-        storeRaw: false,
       });
       appendEvent({
         v: 1,
         ts: new Date().toISOString(),
         type: "session-start",
       });
+      runBackgroundUpdateCheck();
       console.log(`Session started. Data: ${DATA_DIR}`);
       return;
     }
@@ -153,28 +171,49 @@ async function main(): Promise<void> {
     });
 
     console.log("Session started.");
+    runBackgroundUpdateCheck();
     return;
   }
 
-  // Record a prompt observation
+  const config = loadConfig();
+  if (!config?.consentGiven) {
+    process.stderr.write(
+      "Prompt Sensei has not been initialized. Run `/prompt-sensei observe` and consent before recording observations.\n"
+    );
+    return;
+  }
+
+  runBackgroundUpdateCheck();
+
+  const hasObservationArgs =
+    args["stage"] !== undefined ||
+    args["score"] !== undefined ||
+    args["task-type"] !== undefined ||
+    args["flags"] !== undefined;
+  const hashOnly = args["hash-only"] === true || !hasObservationArgs;
+  const stdinText = await readStdin();
+
+  if (hashOnly) {
+    if (!stdinText.trim()) return;
+    appendEvent({
+      v: 1,
+      ts: new Date().toISOString(),
+      type: "prompt-hashed",
+      promptHash: hashPrompt(stdinText),
+    });
+    return;
+  }
+
+  // Record a scored prompt observation. This path is used by the skill after it
+  // classifies and scores the prompt in conversation context.
   const stage = args["stage"] ? String(args["stage"]) : "unknown";
-  const score = args["score"] ? parseFloat(String(args["score"])) : undefined;
+  const score = args["score"] !== undefined ? parseFloat(String(args["score"])) : undefined;
   const taskType = args["task-type"] ? String(args["task-type"]) : "other";
   const flagsRaw = args["flags"] ? String(args["flags"]) : "";
   const flags = flagsRaw ? flagsRaw.split(",").map((f) => f.trim()).filter(Boolean) : [];
 
-  // Optionally hash the prompt from stdin (never store raw text)
-  let promptHash: string | undefined;
-  const storeRaw = process.env["PROMPT_SENSEI_STORE_RAW"] === "1";
-  if (!storeRaw) {
-    const stdinText = await readStdin();
-    if (stdinText.trim()) {
-      promptHash = hashPrompt(stdinText);
-    }
-  }
-
-  if (score !== undefined && (isNaN(score) || score < 0 || score > 5)) {
-    process.stderr.write("Error: --score must be between 0 and 5\n");
+  if (score !== undefined && (isNaN(score) || score < 1 || score > 5)) {
+    process.stderr.write("Error: --score must be between 1 and 5\n");
     process.exit(1);
   }
 
@@ -186,7 +225,7 @@ async function main(): Promise<void> {
     taskType,
     ...(score !== undefined && { score }),
     ...(flags.length > 0 && { flags }),
-    ...(promptHash && { promptHash }),
+    ...(stdinText.trim() && { promptHash: hashPrompt(stdinText) }),
   });
 }
 

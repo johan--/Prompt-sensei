@@ -20,6 +20,24 @@ When observation mode is active, Prompt Sensei records the following per prompt:
 
 **Raw prompt text is never stored by default.**
 
+When the optional Claude Code hook is enabled, it records hash-only captures after consent:
+
+| Field | Type | Example |
+|---|---|---|
+| `ts` | string | `"2026-04-25T14:32:10Z"` |
+| `type` | string | `"prompt-hashed"` |
+| `promptHash` | string | `"a3f1b2c4..."` |
+
+Prompt Sensei also stores cached update-check status when update checks run:
+
+| Field | Type | Example |
+|---|---|---|
+| `checkedAt` | string | `"2026-04-25T14:32:10Z"` |
+| `status` | string | `"update-available"` |
+| `branch` | string | `"main"` |
+| `currentSha` | string | `"65fb4ad..."` |
+| `remoteSha` | string | `"31e4a5b..."` |
+
 ---
 
 ## What is never stored
@@ -54,15 +72,9 @@ Consent is stored in `~/.prompt-sensei/config.json`. The prompt only appears onc
 
 ---
 
-## Opting in to raw prompt storage
+## Hashing and redaction
 
-If you want to store your prompt text locally for your own analysis, run:
-
-```bash
-PROMPT_SENSEI_STORE_RAW=1 npm run observe
-```
-
-Even in raw storage mode, Prompt Sensei attempts to redact:
+Prompt Sensei does not support raw prompt storage. When prompt text is available through stdin, it is redacted before hashing. Redaction covers:
 
 - Email addresses
 - API keys and tokens (detected by common prefixes: `sk-`, `ghp_`, `xox*`, etc.)
@@ -72,7 +84,7 @@ Even in raw storage mode, Prompt Sensei attempts to redact:
 
 Redacted fields are replaced with labeled placeholders: `[EMAIL]`, `[API_KEY]`, `[CREDENTIAL]`, etc.
 
-Raw storage is opt-in, local-only, and redacted. Nothing is sent externally.
+Only the hash prefix is stored. Nothing is sent externally.
 
 ---
 
@@ -90,7 +102,7 @@ Each line is a readable JSON object. There is no binary format, no encryption, n
 
 ## Deleting your data
 
-From Claude Code:
+From Prompt Sensei:
 
 ```
 /prompt-sensei clear
@@ -114,9 +126,13 @@ node dist/scripts/clear.js --all
 
 ---
 
-## No network calls
+## Network behavior
 
-Prompt Sensei contains no analytics, no error reporting, no usage tracking, and no network calls of any kind. The scripts are local Node.js executables. You can verify this by reading the source in `scripts/` — there are no HTTP clients, no `fetch` calls, and no third-party SDKs.
+Prompt Sensei contains no analytics, no error reporting, and no usage tracking. It makes no network calls for prompt observation or reporting.
+
+The only networked feature is update checking. At most once per day during observe/report activity, Prompt Sensei may run `git ls-remote` against the configured `origin` remote to compare the local commit with the remote branch. It stores only update status and commit SHAs in `~/.prompt-sensei/update-check.json`. It never sends prompt text, scores, reports, or local event data.
+
+Updates are never applied automatically. `/prompt-sensei update` runs `git pull --ff-only`, `npm install`, and `npm run build` only when the user explicitly requests it.
 
 ---
 
@@ -124,9 +140,8 @@ Prompt Sensei contains no analytics, no error reporting, no usage tracking, and 
 
 If you are working in an environment with strict data handling requirements:
 
-1. Keep `PROMPT_SENSEI_STORE_RAW` unset (the default — no raw text stored)
-2. Add `~/.prompt-sensei/` to your backup exclusion rules if applicable
-3. Run `clear` at the end of each session if required by policy
-4. Review `scripts/observe.ts` to audit data collection before enabling the hook
+1. Add `~/.prompt-sensei/` to your backup exclusion rules if applicable
+2. Run `clear` at the end of each session if required by policy
+3. Review `scripts/observe.ts` to audit data collection before enabling the hook
 
 Prompt Sensei is designed to be safe to use in sensitive contexts with default settings.
