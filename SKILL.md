@@ -1,7 +1,7 @@
 ---
 name: prompt-sensei
-description: Stage-aware prompt coaching, prompt improvement, prompting habit feedback, and local reports about prompt quality for AI coding agents such as Claude Code or Codex.
-argument-hint: [observe|stop|improve|report|help|clear|update]
+description: Stage-aware prompt coaching, prompt improvement, lookback analysis, prompting habit feedback, and local reports about prompt quality for AI coding agents such as Claude Code or Codex.
+argument-hint: [observe|stop|improve|lookback|report|help|clear|update]
 ---
 
 # Prompt Sensei
@@ -21,17 +21,19 @@ This skill is triggered by `/prompt-sensei`. Read the arguments the user provide
 - `/prompt-sensei stop` — deactivate observation mode for this session
 - `/prompt-sensei help` — show available commands
 - `/prompt-sensei improve <prompt>` — score a specific prompt and rewrite it with a minimal, copyable upgrade
+- `/prompt-sensei lookback` — analyze selected Claude Code or Codex history after separate consent
 - `/prompt-sensei report` — run the report script and display session statistics
 - `/prompt-sensei clear` — run the clear script to delete session data
 - `/prompt-sensei update` — run the update script to pull the latest version and rebuild
 
 If the user asks for `/prompt-sensei review`, `/prompt-sensei score`, "review my prompt", or "score this prompt", redirect briefly: `Use /prompt-sensei improve <prompt>.`
 
-In Codex or other environments without slash-command support, treat natural-language requests such as "use prompt-sensei", "improve this prompt", or "show my prompt-sensei report" as equivalent invocations.
+In Codex or other environments without slash-command support, treat natural-language requests such as "use prompt-sensei", "improve this prompt", "look back at my prompt history", or "show my prompt-sensei report" as equivalent invocations.
 
 When running bundled scripts, use the installed skill root:
 - Claude Code default: `~/.claude/skills/prompt-sensei`
 - Codex default: `~/.codex/skills/prompt-sensei`
+- IDE/plugin environments that load Claude Code or Codex skills should use the same installed skill root as that host tool.
 - In Claude Code, always call scripts by absolute path. Do not `cd` into the skill directory before running a script; Claude Code may reset the shell cwd and show a misleading warning.
 
 ---
@@ -328,6 +330,75 @@ If the event file exists but only has session-start events in the selected repor
 
 ---
 
+## Behavior in Lookback Mode
+
+Lookback analyzes selected local Claude Code or Codex history. It is separate from observe consent because it may read raw historical user prompts before redaction.
+
+When the user types `/prompt-sensei lookback`:
+
+1. Discover local sessions first:
+
+```bash
+node ~/.claude/skills/prompt-sensei/dist/scripts/lookback.js --discover
+```
+
+Use the installed skill root for the current environment, e.g. `~/.codex/skills/prompt-sensei` in Codex.
+
+2. Ask the user to choose one source:
+   - select one discovered session
+   - auto select all sessions
+   - manual path/source (ask whether it is Claude Code or Codex if the path does not make that obvious)
+
+3. Ask for analysis format:
+   - `one-by-one` — concise coaching for selected prompts
+   - `report` — a longer lookback report with repeated patterns and 1-5 tips
+
+4. Ask how many recent user prompts to analyze:
+   - default: `30`
+   - accept a number or `all`
+   - if the number is greater than `50` or the user chooses `all`, ask for confirmation before extraction
+   - hard cap: `500`
+
+5. Show this consent text before reading history:
+
+```
+Prompt Sensei will read selected local conversation history and redact user prompts before analysis.
+Redacted user prompts may be shown to the current AI agent for coaching.
+Raw history will not be copied into Prompt Sensei storage.
+Raw prompt text will not be saved.
+
+Continue? (yes / no)
+```
+
+If the user does not consent, stop.
+
+6. Extract the selected history:
+   - one discovered session: `node ~/.claude/skills/prompt-sensei/dist/scripts/lookback.js --extract --path <session-jsonl-path> --mode <report|one-by-one> --limit <number|all>`
+   - all sessions: `node ~/.claude/skills/prompt-sensei/dist/scripts/lookback.js --extract --source all --session all --mode <report|one-by-one> --limit <number|all>`
+   - manual path: `node ~/.claude/skills/prompt-sensei/dist/scripts/lookback.js --extract --source <claude|codex> --path <file-or-dir> --mode <report|one-by-one> --limit <number|all>`
+
+7. Analyze only user prompts. Do not analyze assistant responses.
+
+8. Avoid direct quotes from the prompts by default. Give direct advice such as "your prompt did not mention which test failed" rather than quoting the prompt text.
+
+9. For `one-by-one`, provide concise feedback per prompt. For `report`, include:
+   - repeated prompting patterns
+   - strongest prompt habits
+   - 1-5 next habits depending on history length
+   - a short practice recommendation
+
+10. Ask whether to save the generated markdown report. Save only after explicit confirmation:
+
+```bash
+node ~/.claude/skills/prompt-sensei/dist/scripts/lookback.js --save-report --title "Prompt Sensei Lookback"
+```
+
+Pass the report content on stdin. Saved reports go to `~/.prompt-sensei/reports/`.
+
+Lookback does not store raw history, prompt hashes, or derived metadata by default.
+
+---
+
 ## Behavior in Clear Mode
 
 Run the clear script:
@@ -351,9 +422,10 @@ Commands:
   /prompt-sensei observe               Score prompts as you write them
   /prompt-sensei stop                  Stop scoring for this session
   /prompt-sensei improve "<prompt>"    Rewrite a prompt with one teaching note
+  /prompt-sensei lookback              Analyze selected local prompt history
   /prompt-sensei report                Show your session statistics
   /prompt-sensei update                Pull the latest version and rebuild
-  /prompt-sensei clear                 Delete local session data
+  /prompt-sensei clear                 Delete local Prompt Sensei data
   /prompt-sensei help                  Show this help
 
 Prompt stages:   Exploration · Diagnosis · Execution · Verification · Reusable workflow · Action
