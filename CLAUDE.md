@@ -10,6 +10,7 @@ This project is a local-first prompt-coaching skill for AI coding agents. Keep c
 - Update `docs/scoring-rubric.md` when stage formulas, dimensions, flags, or score labels change.
 - Update `examples/debugging-journey.md` when scoring examples, report style, or recommended prompt patterns change.
 - Update `examples/prompt-gallery.md` when improve-mode examples, copyable before/after prompts, or adoption examples change.
+- Update `eval/prompts.json` when scoring behavior, stage definitions, or teaching expectations change.
 - Keep Claude Code hook snippets in `SKILL.md`, `README.md`, and `README-zh.md` consistent.
 - Keep the public command surface consistent across `SKILL.md`, `README.md`, `README-zh.md`, and examples. The public prompt-rewrite command is `/prompt-sensei improve`; legacy `review`/`score` wording should only appear as a redirect to `improve`.
 
@@ -44,6 +45,12 @@ For lookback-related changes, also smoke test:
 ```bash
 node dist/scripts/lookback.js --help
 node dist/scripts/lookback.js --discover --max-sessions 3
+```
+
+For scoring or teaching-language changes, also run:
+
+```bash
+npm run eval
 ```
 
 ## Release Notes

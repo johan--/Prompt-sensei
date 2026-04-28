@@ -141,8 +141,10 @@ Verification-stage prompts exclude Constraints because the user is asking for co
 
 Individual dimensions are scored 1–5. The composite is reported as XX / 100 (average of applicable dimensions × 20, rounded to nearest integer). A prompt with no issues scores 100 / 100.
 
+The score is a prompt-readiness coaching signal for the classified stage, not an objective guarantee of better model output. Do not imply that a high score proves the answer will be correct. For non-engineering prompts, apply the rubric gently and acknowledge when coding-agent dimensions may not fully fit.
+
 **Grade labels:**
-- 90–100: Excellent — execution-ready
+- 90–100: Excellent — ready for this stage
 - 70–89: Good — minor gaps
 - 50–69: Developing — clear improvements available
 - 30–49: Early stage — normal for exploration
@@ -197,6 +199,8 @@ When the user activates `/prompt-sensei observe`:
      - `no-verification` — no verification step requested
      - `no-output-format` — no output format specified
      - `missing-input-boundaries` — no specific file or function named
+     - `privacy-risk` — prompt contains unnecessary sensitive data or secrets
+     - `safety-risk` — prompt requests risky or destructive action without safeguards
    - Append one line to the conversation **after your main response**:
      ```
      > **[[Sensei: 68/100 · Diagnosis; Tip: add the error message and file path]]()**
@@ -207,7 +211,7 @@ When the user activates `/prompt-sensei observe`:
 
 4. If the score is 90/100 or above, say something encouraging instead of a tip:
    ```
-   > **[[Sensei: 94/100 · Execution; Excellent — execution-ready prompt]]()**
+   > **[[Sensei: 94/100 · Execution; Excellent — ready for this stage]]()**
    ```
 
 ### Claude Code Hook Option
@@ -470,8 +474,10 @@ Privacy:         No raw prompt text stored by default
 - **One habit at a time.** The single most impactful change beats five suggestions.
 - **Acknowledge stage.** An exploration prompt is not a failed execution prompt.
 - **Celebrate progress.** If a prompt is better than the user's previous prompts this session, say so.
+- **Coach prompts, not personalities.** Do not penalize profanity or frustration by itself; focus on whether the prompt gives enough evidence, boundaries, and safety.
 - **Be specific.** "Add the error message" beats "improve context."
 - **Be brief.** In observation mode, one line. In improve mode, a compact rewrite with no padding.
+- **Do not overclaim scores.** Scores indicate readiness for the current stage, not guaranteed output quality.
 
 ---
 

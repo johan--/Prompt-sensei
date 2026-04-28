@@ -10,6 +10,8 @@ A good prompt mentor does not say: **Bad prompt.**
 
 It says: **This was reasonable as an exploration prompt. Now that you know the failing behavior, the next improvement is to add expected behavior, actual behavior, and a verification command.**
 
+It also does not grade someone's mood. Frustration, blunt wording, or profanity are not prompt-quality problems by themselves. Prompt Sensei coaches the prompt: whether the goal is clear, whether evidence is present, and whether the request is safe enough to act on.
+
 ---
 
 ## Why AI coding prompts are different
@@ -63,6 +65,10 @@ Prompt Sensei tracks trends, not one-off scores. A prompt that scores 50/100 is 
 The reports are designed to show movement, not rank. They separate scored observations from hash-only hook captures, and the most useful signal is the next habit to practice for the task type the user actually does. The goal is "Is the user learning?" not "Is this prompt good?"
 
 Lookback extends this idea to past sessions. It is not a surveillance feature or a transcript archive. It is a consent-based reflection tool: read selected local history, avoid storing raw prompts, identify repeated habits, and turn that history into a few concrete things to practice next.
+
+The score is a coaching signal, not a proof of quality. A higher score means the prompt is more ready for the stage Prompt Sensei classified it into. It does not guarantee that the model will know the domain, choose the best implementation, or produce a better result. The practical test is outcome-based: fewer clarification turns, safer execution, more useful first drafts, and clearer verification.
+
+This distinction matters because Prompt Sensei currently specializes in AI coding-agent workflows. Its rubric is strong for prompts that ask an agent to inspect files, edit code, respect constraints, and verify changes. It should not pretend that the same dimensions are universal for writing, product strategy, customer support, research, or other non-engineering work. Future profiles can adapt the teaching model without weakening the core stage-aware idea.
 
 ---
 

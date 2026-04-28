@@ -9,6 +9,7 @@
     "observe": "node dist/scripts/observe.js",
     "report": "node dist/scripts/report.js",
     "lookback": "node dist/scripts/lookback.js",
+    "eval": "node dist/scripts/eval.js",
     "check-update": "node dist/scripts/update.js --check",
     "update": "node dist/scripts/update.js --apply",
     "clear-data": "node dist/scripts/clear.js"

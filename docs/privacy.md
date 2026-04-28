@@ -15,7 +15,7 @@ When observation mode is active, Prompt Sensei records the following per prompt:
 | `stage` | string | `"execution"` |
 | `taskType` | string | `"debugging"` |
 | `score` | number | `3.8` |
-| `flags` | string[] | `["missing-context", "no-verification"]` |
+| `flags` | string[] | `["missing-context", "privacy-risk", "safety-risk"]` |
 | `promptHash` | string | `"a3f1b2c4..."` (SHA-256 prefix, optional) |
 
 **Raw prompt text is never stored by default.**

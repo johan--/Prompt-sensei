@@ -1,0 +1,214 @@
+[
+  {
+    "id": "exploration-weak-001",
+    "category": "coding-agent",
+    "prompt": "why is login broken",
+    "expectedStage": "Exploration",
+    "expectedScoreBand": "60-90",
+    "expectedFlags": [],
+    "expectedTipTheme": "make the goal slightly clearer"
+  },
+  {
+    "id": "diagnosis-medium-001",
+    "category": "coding-agent",
+    "prompt": "The login test is failing. Expected /login, actual /dashboard.",
+    "expectedStage": "Diagnosis",
+    "expectedScoreBand": "55-80",
+    "expectedFlags": ["missing-context"],
+    "expectedTipTheme": "add file path or recent change"
+  },
+  {
+    "id": "execution-weak-001",
+    "category": "coding-agent",
+    "prompt": "fix this test",
+    "expectedStage": "Exploration",
+    "acceptableStages": ["Exploration", "Execution"],
+    "expectedScoreBand": "50-75",
+    "expectedFlags": [],
+    "expectedTipTheme": "name expected and actual behavior",
+    "notes": "Stage is intentionally ambiguous without surrounding context. Exploration is kinder for a first signal; Execution is also defensible because the verb asks for a change."
+  },
+  {
+    "id": "execution-medium-001",
+    "category": "coding-agent",
+    "prompt": "Fix the failing Jest auth test in src/__tests__/auth.test.ts. Expected redirect to /login, actual /dashboard. Do not refactor the whole auth flow.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "60-85",
+    "expectedFlags": ["no-output-format", "no-verification"],
+    "expectedTipTheme": "add return format or verification"
+  },
+  {
+    "id": "execution-strong-001",
+    "category": "coding-agent",
+    "prompt": "Please debug the failing Jest auth test.\n\nGoal: find why unauthenticated users redirect to /dashboard instead of /login.\nContext: recent change added refresh-token support.\nInput: src/middleware/auth.ts and src/__tests__/auth.test.ts.\nConstraints: prefer the smallest safe fix; do not refactor the whole auth flow; if the test expectation is wrong, explain why before changing it.\nReturn: 1. Root cause 2. Minimal fix 3. Files changed 4. Test command 5. Edge cases.\nVerification: run npm test src/__tests__/auth.test.ts.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "90-100",
+    "expectedFlags": [],
+    "expectedTipTheme": "excellent execution-ready prompt"
+  },
+  {
+    "id": "verification-medium-001",
+    "category": "coding-agent",
+    "prompt": "Review the auth changes for bugs and missing tests. Focus on src/auth and return findings first.",
+    "expectedStage": "Verification",
+    "expectedScoreBand": "70-90",
+    "expectedFlags": ["missing-input-boundaries"],
+    "expectedTipTheme": "name exact diff or files",
+    "notes": "This is already a verification request. The weaker point is input boundary: src/auth is a directory, not a concrete diff, file, or branch."
+  },
+  {
+    "id": "workflow-strong-001",
+    "category": "coding-agent",
+    "prompt": "Create a repeatable release checklist for Prompt Sensei.\nContext: solo open-source project using develop and main branches.\nConstraints: keep it lightweight; include privacy/docs checks; avoid enterprise process.\nReturn: 1. Pre-release checks 2. Version bump steps 3. GitHub release steps 4. Post-release smoke test.",
+    "expectedStage": "Reusable workflow",
+    "expectedScoreBand": "75-95",
+    "expectedFlags": ["no-verification"],
+    "expectedTipTheme": "add final verification command",
+    "notes": "Strong workflow prompt, but it does not state how to validate the checklist itself or what command proves release readiness."
+  },
+  {
+    "id": "action-strong-001",
+    "category": "coding-agent",
+    "prompt": "run the tests",
+    "expectedStage": "Action",
+    "acceptableStages": ["Action", "Execution"],
+    "expectedScoreBand": "80-100",
+    "expectedFlags": [],
+    "expectedTipTheme": "clear follow-through directive",
+    "notes": "Action is correct inside an established session. Execution is acceptable if evaluated with no prior context."
+  },
+  {
+    "id": "privacy-risk-001",
+    "category": "coding-agent",
+    "prompt": "Debug this API request. My token is sk-example1234567890 and the endpoint returns 401.",
+    "expectedStage": "Diagnosis",
+    "expectedScoreBand": "35-70",
+    "expectedFlags": ["privacy-risk"],
+    "expectedTipTheme": "redact secrets before prompting"
+  },
+  {
+    "id": "general-non-engineer-001",
+    "category": "general-ai",
+    "prompt": "Help me write a polite email asking my landlord to fix the heater. Keep it firm but not rude.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "60-85",
+    "expectedFlags": [],
+    "expectedTipTheme": "coding rubric may not fully apply",
+    "notes": "This fixture should remind maintainers that coding-agent dimensions should be applied gently until general-writing profiles exist."
+  },
+  {
+    "id": "diagnosis-strong-001",
+    "category": "coding-agent",
+    "prompt": "The checkout endpoint started returning 500 after we changed PaymentIntent creation yesterday.\n\nExpected: POST /api/checkout returns 200 with a clientSecret.\nActual: StripeInvalidRequestError: No such customer.\nRelated files: src/routes/checkout.ts and src/services/stripe.ts.\nRecent change: replaced local customer lookup with getOrCreateStripeCustomer().\nPlease identify the likely root cause before suggesting a fix.",
+    "expectedStage": "Diagnosis",
+    "expectedScoreBand": "85-100",
+    "expectedFlags": [],
+    "expectedTipTheme": "strong diagnosis prompt"
+  },
+  {
+    "id": "execution-overbroad-001",
+    "category": "coding-agent",
+    "prompt": "Refactor the whole app and make it cleaner.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "25-55",
+    "expectedFlags": ["missing-context", "missing-input-boundaries", "no-constraints", "no-output-format", "no-verification"],
+    "expectedTipTheme": "narrow the scope to one module or file"
+  },
+  {
+    "id": "execution-missing-constraints-001",
+    "category": "coding-agent",
+    "prompt": "Add password reset to the auth flow. Use the existing user table and email service. Return a summary of files changed and the test command.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "55-80",
+    "expectedFlags": ["missing-input-boundaries", "no-constraints"],
+    "expectedTipTheme": "add scope and safety constraints"
+  },
+  {
+    "id": "execution-dangerous-001",
+    "category": "coding-agent",
+    "prompt": "Delete the old migration files and force push the cleanup to main.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "25-60",
+    "expectedFlags": ["missing-context", "no-verification", "safety-risk"],
+    "expectedTipTheme": "ask for confirmation and safety checks",
+    "notes": "The prompt is clear, but the requested operation is risky. Sensei should not reward clarity while ignoring blast radius."
+  },
+  {
+    "id": "verification-strong-001",
+    "category": "coding-agent",
+    "prompt": "Review the diff from feature/lookback against develop for correctness risks.\n\nFocus on: privacy regressions, raw prompt storage, broken report output, and missing docs updates.\nReturn findings first, ordered by severity, with file and line references.\nThen run npm run build and npm run eval if changes are needed.",
+    "expectedStage": "Verification",
+    "expectedScoreBand": "85-100",
+    "expectedFlags": [],
+    "expectedTipTheme": "excellent verification prompt"
+  },
+  {
+    "id": "workflow-weak-001",
+    "category": "coding-agent",
+    "prompt": "make me a good release process",
+    "expectedStage": "Reusable workflow",
+    "acceptableStages": ["Reusable workflow", "Exploration"],
+    "expectedScoreBand": "35-65",
+    "expectedFlags": ["missing-context", "missing-input-boundaries", "no-constraints", "no-output-format", "no-verification"],
+    "expectedTipTheme": "add audience and project context"
+  },
+  {
+    "id": "action-vague-001",
+    "category": "coding-agent",
+    "prompt": "do it",
+    "expectedStage": "Action",
+    "expectedScoreBand": "35-65",
+    "expectedFlags": [],
+    "expectedTipTheme": "name the action"
+  },
+  {
+    "id": "writing-weak-001",
+    "category": "writing",
+    "prompt": "make this sound better",
+    "expectedStage": "Execution",
+    "acceptableStages": ["Execution", "Exploration"],
+    "expectedScoreBand": "35-65",
+    "expectedFlags": [],
+    "expectedTipTheme": "provide audience, tone, and source text",
+    "notes": "Non-engineering prompt. The coding flags should not dominate; the useful teaching point is missing audience/source/tone."
+  },
+  {
+    "id": "writing-strong-001",
+    "category": "writing",
+    "prompt": "Rewrite this launch post for developers on Reddit.\n\nGoal: sound natural, curious, and not salesy.\nAudience: engineers who use Claude Code or Codex.\nConstraints: keep it under 120 words; do not overclaim productivity gains; mention local-first privacy.\nReturn: 1. Revised post 2. One shorter variant 3. Why the tone works.\nText: [paste draft here]",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "80-100",
+    "expectedFlags": [],
+    "expectedTipTheme": "strong non-engineering prompt",
+    "notes": "This should score well even though it has no file path or test command, because the non-engineering context is clear."
+  },
+  {
+    "id": "product-planning-medium-001",
+    "category": "product",
+    "prompt": "Help me decide whether Prompt Sensei should support Cursor next. Consider adoption value, implementation complexity, privacy risk, and whether docs-only support is enough.",
+    "expectedStage": "Exploration",
+    "acceptableStages": ["Exploration", "Reusable workflow"],
+    "expectedScoreBand": "75-95",
+    "expectedFlags": [],
+    "expectedTipTheme": "strong planning prompt with decision criteria"
+  },
+  {
+    "id": "research-weak-001",
+    "category": "research",
+    "prompt": "research competitors",
+    "expectedStage": "Exploration",
+    "expectedScoreBand": "35-65",
+    "expectedFlags": [],
+    "expectedTipTheme": "name market, criteria, and output"
+  },
+  {
+    "id": "privacy-borderline-001",
+    "category": "general-ai",
+    "prompt": "Summarize this customer complaint from jane.doe@example.com about her billing issue and tell me whether we should refund her.",
+    "expectedStage": "Execution",
+    "expectedScoreBand": "45-75",
+    "expectedFlags": ["privacy-risk"],
+    "expectedTipTheme": "redact personal data before analysis",
+    "notes": "This is not a secret-token case, but it still contains unnecessary personal data."
+  }
+]

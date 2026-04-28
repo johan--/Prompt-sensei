@@ -8,6 +8,8 @@ Prompt Sensei is a quiet, local-first prompt coach for Claude Code and Codex, in
 
 No cloud. No telemetry. No leaderboard. No raw prompt archive.
 
+Prompt Sensei's score is a coaching signal, not an objective grade or a guarantee of better output. The real test is whether the improved prompt produces a more useful first draft, fewer clarification turns, safer agent behavior, and easier verification.
+
 ---
 
 ## Why This Exists
@@ -157,6 +159,8 @@ The coaching line stays small:
 
 > **[Sensei: 68/100 · Diagnosis; Tip: add the error message and file path]**
 
+Think of the score as prompt readiness for the current stage, not universal prompt quality. A 100/100 prompt can still produce a weak answer if the model lacks domain knowledge, the task is ambiguous outside the prompt, or the rubric does not fit the user's domain.
+
 The report focuses on growth:
 
 ```txt
@@ -166,6 +170,23 @@ Next habit:       End prompts with the exact test command or edge cases.
 ```
 
 For the full philosophy, read [docs/philosophy.md](docs/philosophy.md). For scoring details, read [docs/scoring-rubric.md](docs/scoring-rubric.md).
+
+---
+
+## How Do I Know It Helps?
+
+Prompt Sensei does not prove that a prompt is better just because the number went up. It gives a structured coaching signal.
+
+To check whether it helped, compare the original prompt and the improved prompt on the same task:
+
+- Did the AI ask fewer clarification questions?
+- Was the first answer more accurate or easier to act on?
+- Did the agent make fewer broad or surprising changes?
+- Was the result easier to verify?
+
+If the improved prompt does not produce a better outcome, treat that as useful feedback for the rubric. Prompt Sensei is meant to teach better prompting habits, not replace your judgment.
+
+For maintainers, `npm run eval` prints calibration fixtures that make it easier to review Sensei's stage choices, score bands, flags, and tips across weak, medium, strong, privacy-risk, safety-risk, and non-engineering prompts.
 
 ---
 

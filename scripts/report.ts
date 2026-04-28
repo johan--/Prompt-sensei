@@ -67,6 +67,16 @@ const FLAG_COACHING: Record<string, CoachingNote> = {
     why: "Input boundaries keep the agent from searching or editing more than needed.",
     practice: "For the next three code prompts, include at least one file path.",
   },
+  "privacy-risk": {
+    habit: "Redact secrets, tokens, emails, and private URLs before prompting.",
+    why: "Privacy issues matter more than prompt structure because they can expose sensitive data.",
+    practice: "For the next three prompts with logs or credentials, replace sensitive values with labeled placeholders.",
+  },
+  "safety-risk": {
+    habit: "Add confirmation, rollback, or dry-run steps before destructive actions.",
+    why: "Clear prompts can still be unsafe if they ask the agent to delete, overwrite, or force-push without safeguards.",
+    practice: "For the next three risky operations, include 'confirm plan first' and a rollback step.",
+  },
 };
 
 function loadEvents(days: number): PromptEvent[] {
@@ -250,7 +260,7 @@ function momentumMessage(trend100: number): string {
 
 function scoreBandMessage(avgScore100: number, topTask: string): string {
   if (avgScore100 >= 90) {
-    return `Your ${topTask} prompts are consistently execution-ready. Keep protecting that clarity when tasks get bigger.`;
+    return `Your ${topTask} prompts are consistently strong for their stage. Keep protecting that clarity when tasks get bigger.`;
   }
   if (avgScore100 >= 70) {
     return `Your ${topTask} prompts are already useful. One sharper habit can move them from good to consistently excellent.`;

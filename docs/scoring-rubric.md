@@ -158,11 +158,15 @@ Did the prompt avoid unnecessary sensitive data?
 
 When in doubt, redact and note that you've done so: `[API key redacted]`.
 
+Safety also includes risky agent actions. A prompt that asks the agent to delete data, rewrite history, force-push, rotate credentials, or make broad production changes should include safeguards such as confirmation, dry-run output, rollback steps, or explicit verification.
+
 ---
 
 ## Composite Score
 
 Individual dimensions are scored 1–5. The composite is reported as XX / 100 (average of applicable dimensions × 20, rounded). A prompt with no issues in any dimension scores 100 / 100.
+
+The composite is a prompt-readiness signal for the selected stage, not an objective guarantee that the model's answer will be better. Use it to guide practice, then validate the real outcome: fewer clarification turns, safer edits, more useful first drafts, and easier verification.
 
 | Stage | Dimensions included in composite |
 |---|---|
@@ -177,11 +181,13 @@ Verification prompts exclude Constraints because the user is asking for checks, 
 
 Scores are stage-relative. A prompt can score well as Exploration and then score lower as Execution after the user asks for file edits, because more dimensions apply. This is expected: the rubric raises the bar when the agent is being asked to make real changes.
 
+The current rubric is tuned for AI coding-agent workflows. For non-engineering prompts, treat scores as approximate coaching feedback until a profile-specific rubric exists.
+
 **Grade labels:**
 
 | Score | Grade | What it means |
 |---|---|---|
-| 90–100 | Excellent | Execution-ready |
+| 90–100 | Excellent | Ready for this stage |
 | 70–89 | Good | Minor gaps, will still produce useful results |
 | 50–69 | Developing | Clear improvements available |
 | 30–49 | Early stage | Normal for exploration; add evidence when ready |
